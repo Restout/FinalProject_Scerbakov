@@ -1,0 +1,564 @@
+openapi: 3.0.0
+info:
+  title: Shopping List API
+  version: 1.0.0
+  description: API для работы со списками покупок.
+servers:
+  - url: 'http://localhost:3000/api'
+paths:
+  /register:
+    post:
+      summary: Регистрация нового пользователя
+      description: Регистрация нового пользователя с указанием имени, email и пароля.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  example:
+                    message: 'User registered successfully'
+        '400':
+          description: Ошибка при регистрации (например, email уже существует)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  example:
+                    message: 'Email already exists'
+        '500':
+          description: Ошибка на сервере
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  example:
+                    error: 'Some server error'
+
+  /login:
+    post:
+      summary: Вход пользователя
+      description: Вход пользователя с использованием email и пароля. Возвращает токен.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Успешный вход, токен получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  example:
+                    token: 'your_jwt_token_here'
+        '400':
+          description: Ошибка при входе (неправильный email или пароль)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  example:
+                    message: 'Invalid username or password'
+        '500':
+          description: Ошибка на сервере
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  example:
+                    error: 'Some server error'
+
+  /shopping-lists:
+    post:
+      summary: Создание нового списка покупок
+      description: Создает новый список покупок.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                userId:
+                  type: string
+      responses:
+        '201':
+          description: Список покупок успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  userId:
+                    type: string
+        '400':
+          description: Ошибка при создании списка
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /shopping-lists/user/{userId}:
+    get:
+      summary: Получить все списки покупок для пользователя
+      description: Получить все списки покупок для указанного пользователя.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Списки покупок успешно получены
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    name:
+                      type: string
+                    userId:
+                      type: string
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          price:
+                            type: number
+                          quantity:
+                            type: number
+        '500':
+          description: Ошибка при получении списка
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /shopping-lists/{listId}:
+    get:
+      summary: Получить конкретный список покупок
+      description: Получить список покупок по ID.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          description: Идентификатор списка покупок
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список покупок найден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  userId:
+                    type: string
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        price:
+                          type: number
+                        quantity:
+                          type: number
+        '404':
+          description: Список покупок не найден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Ошибка на сервере
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /shopping-lists/{listId}/items:
+    post:
+      summary: Добавить товар в список покупок
+      description: Добавляет новый товар в существующий список покупок. Если товар уже существует, увеличивает его количество.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          description: Идентификатор списка покупок
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                quantity:
+                  type: number
+      responses:
+        '201':
+          description: Товар успешно добавлен в список
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  userId:
+                    type: string
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        price:
+                          type: number
+                        quantity:
+                          type: number
+        '404':
+          description: Список покупок не найден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Ошибка на сервере
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+
+  /items:
+    post:
+      summary: Добавить новый товар
+      description: Добавляет новый товар в базу данных и добавляет его в соответствующий список покупок.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                quantity:
+                  type: number
+                shoppingListId:
+                  type: string
+      responses:
+        '201':
+          description: Товар успешно добавлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  price:
+                    type: number
+                  quantity:
+                    type: number
+                  shoppingListId:
+                    type: string
+        '400':
+          description: Ошибка при добавлении товара
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /items/{id}:
+    delete:
+      summary: Удалить товар
+      description: Удаляет товар из базы данных и удаляет его из соответствующего списка покупок.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор товара для удаления
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Товар успешно удален
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  example:
+                    message: 'Item deleted'
+        '500':
+          description: Ошибка на сервере
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /groups/add:
+    post:
+      tags:
+        - Groups
+      summary: Add a user to a group (automatically create a group if it doesn't exist)
+      description: |
+        Adds a user to the group of the authenticated user. 
+        If the authenticated user is not in a group, a new group is created automatically.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "newuser@example.com"
+                  description: Email of the user to add to the group.
+              required:
+                - email
+      responses:
+        200:
+          description: User added to the group successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User added to the group"
+                  group:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "64ac12345abcdef67890"
+                      name:
+                        type: string
+                        example: "User's Group"
+                      members:
+                        type: array
+                        items:
+                          type: string
+                          example: "64ac12345abcdef67890"
+        400:
+          description: Bad request, such as when the user is already in the group.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User is already in the group"
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Internal server error.
+
+  /groups/leave:
+    post:
+      tags:
+        - Groups
+      summary: Leave a group
+      description: |
+        Removes the authenticated user from their group. 
+        If the group becomes empty after the user leaves, it is deleted.
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: User left the group successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "You left the group. Group deleted as it has no members."
+                  group:
+                    type: object
+                    nullable: true
+                    properties:
+                      _id:
+                        type: string
+                        example: "64ac12345abcdef67890"
+                      name:
+                        type: string
+                        example: "User's Group"
+                      members:
+                        type: array
+                        items:
+                          type: string
+                          example: "64ac12345abcdef67890"
+        404:
+          description: User is not part of any group.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "You are not part of any group"
+        500:
+          description: Internal server error.
+  /groups/members:
+    get:
+      tags:
+        - Groups
+      summary: Get members of the user's group
+      description: Retrieves a list of all members in the group the authenticated user belongs to.
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Successfully retrieved the list of group members.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "64ac12345abcdef67890"
+                        name:
+                          type: string
+                          example: "John Doe"
+                        email:
+                          type: string
+                          format: email
+                          example: "john.doe@example.com"
+        404:
+          description: The user is not part of any group.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "You are not part of any group"
+        500:
+          description: Internal server error.
