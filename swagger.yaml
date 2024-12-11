@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: API для работы со списками покупок.
 servers:
-  - url: 'http://localhost:3000/api'
+  - url: 'http://localhost:5000/api'
 paths:
   /auth/register:
     post:
