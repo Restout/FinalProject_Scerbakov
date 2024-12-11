@@ -43,69 +43,128 @@ export default function App() {
   );
 }
 
-function Home({ onLogout, token }) {
-  const [shoppingLists, setShoppingLists] = useState([]);
-  const [newListName, setNewListName] = useState("");
+  function Home({ onLogout, token }) {
+    const [shoppingLists, setShoppingLists] = useState([]);
+    const [newListName, setNewListName] = useState("");
+    const [groupMembers, setGroupMembers] = useState(null); // Initially null, as the user might not be in a group
+    const [newMemberEmail, setNewMemberEmail] = useState("");
 
-  const userId = jwtDecode(token).id;
+    const userId = jwtDecode(token).id;
 
-  useEffect(() => {
-    fetch(`/api/shopping-lists/user/${userId}`)
-      .then((res) => res.json())
-      .then((data) => setShoppingLists(data))
-      .catch((err) => console.error("Ошибка загрузки списков:", err));
-  }, [userId]);
+    useEffect(() => {
+      fetch(`/api/shopping-lists/user/${userId}`)
+        .then((res) => res.json())
+        .then((data) => setShoppingLists(data))
+        .catch((err) => console.error("Ошибка загрузки списков:", err));
 
-  const handleAddList = () => {
-    if (!newListName) return;
-    fetch("/api/shopping-lists", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newListName, userId }),
-    })
-      .then((res) => res.json())
-      .then((newList) => {
-        setShoppingLists([...shoppingLists, newList]);
-        setNewListName("");
+      fetch("/api/groups/members", {
+        headers: { Authorization: `Bearer ${token}` },
       })
-      .catch((err) => console.error("Ошибка добавления списка:", err));
-  };
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error("Пользователь не состоит в группе");
+          }
+          return res.json();
+        })
+        .then((data) => setGroupMembers(data.members))
+        .catch((err) => {
+          console.warn("Ошибка загрузки членов группы:", err);
+          setGroupMembers(null); // No group exists
+        });
+    }, [userId, token]);
 
-  const handleExportLists = () => {
-    const listsToExport = shoppingLists.map(({ name, items }) => ({
-      name,
-      items: items.map(({ name, price, quantity }) => ({ name, price, quantity })),
-    }));
+    const handleAddList = () => {
+      if (!newListName) return;
+      fetch("/api/shopping-lists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newListName, userId }),
+      })
+        .then((res) => res.json())
+        .then((newList) => {
+          setShoppingLists([...shoppingLists, newList]);
+          setNewListName("");
+        })
+        .catch((err) => console.error("Ошибка добавления списка:", err));
+    };
 
-    const blob = new Blob([JSON.stringify(listsToExport, null, 2)], { type: "application/json" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "myShoppingLists.txt";
-    link.click();
-  };
+    const handleAddMember = () => {
+      if (!newMemberEmail) return;
+      fetch("/api/groups/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ email: newMemberEmail }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setGroupMembers(data.group.members);
+          setNewMemberEmail("");
+        })
+        .catch((err) => console.error("Ошибка добавления пользователя в группу:", err));
+    };
 
-  return (
-    <div className="home">
-      <h1>Мои списки покупок</h1>
-      <button onClick={onLogout}>Выйти</button>
-      <div>
-        <input
-          type="text"
-          placeholder="Название нового списка"
-          value={newListName}
-          onChange={(e) => setNewListName(e.target.value)}
-        />
-        <button onClick={handleAddList}>Добавить список продуктов</button>
+    const handleLeaveGroup = () => {
+      fetch("/api/groups/leave", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then(() => {
+          setGroupMembers(null); // User leaves group, no members
+          setShoppingLists([]); // Clear shopping lists (assuming they are tied to the group)
+        })
+        .catch((err) => console.error("Ошибка выхода из группы:", err));
+    };
+
+    return (
+      <div className="home">
+        <h1>Мои списки покупок</h1>
+        <button onClick={onLogout}>Выйти</button>
+        <div>
+          <input
+            type="text"
+            placeholder="Название нового списка"
+            value={newListName}
+            onChange={(e) => setNewListName(e.target.value)}
+          />
+          <button onClick={handleAddList}>Добавить список продуктов</button>
+        </div>
+        <div className="group">
+          <h2>Группа</h2>
+          {groupMembers ? (
+            <>
+              <ul>
+                {groupMembers.map((member) => (
+                  <li key={member._id}>{member.name}</li>
+                ))}
+              </ul>
+              <button onClick={handleLeaveGroup}>Выйти из группы</button>
+            </>
+          ) : (
+            <p>Вы не состоите в группе.</p>
+          )}
+          <div>
+            <input
+              type="email"
+              placeholder="Email нового участника"
+              value={newMemberEmail}
+              onChange={(e) => setNewMemberEmail(e.target.value)}
+            />
+            <button onClick={handleAddMember}>Добавить пользователя в группу</button>
+          </div>
+        </div>
+        <div className="lists">
+          {shoppingLists.map((list) => (
+            <ShoppingList key={list._id} list={list} />
+          ))}
+        </div>
       </div>
-      <button onClick={handleExportLists}>Поделиться!</button>
-      <div className="lists">
-        {shoppingLists.map((list) => (
-          <ShoppingList key={list._id} list={list} />
-        ))}
-      </div>
-    </div>
-  );
-}
+    );
+  }
+
 function ShoppingList({ list }) {
   const [products, setProducts] = useState(list.items || []);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", quantity: "" });
