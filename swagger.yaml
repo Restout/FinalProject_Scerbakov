@@ -6,7 +6,7 @@ info:
 servers:
   - url: 'http://localhost:3000/api'
 paths:
-  /register:
+  /auth/register:
     post:
       summary: Регистрация нового пользователя
       description: Регистрация нового пользователя с указанием имени, email и пароля.
@@ -58,7 +58,7 @@ paths:
                   example:
                     error: 'Some server error'
 
-  /login:
+  /auth/login:
     post:
       summary: Вход пользователя
       description: Вход пользователя с использованием email и пароля. Возвращает токен.
@@ -519,6 +519,7 @@ paths:
                     example: "You are not part of any group"
         500:
           description: Internal server error.
+
   /groups/members:
     get:
       tags:
