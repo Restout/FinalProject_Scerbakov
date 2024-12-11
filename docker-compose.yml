@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  mongodb:
+    image: mongo:latest  # Используем последний официальный образ MongoDB
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"  # Пробрасываем порт для доступа к MongoDB
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin  # Устанавливаем имя пользователя для администратора
+      MONGO_INITDB_ROOT_PASSWORD: password  # Устанавливаем пароль для администратора
+    volumes:
+      - mongodb_data:/data/db  # Хранение данных в томе, чтобы они сохранялись между перезапусками
+
+volumes:
+  mongodb_data:

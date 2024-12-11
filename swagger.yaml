@@ -33,8 +33,8 @@ paths:
                 properties:
                   message:
                     type: string
-                  example:
-                    message: 'User registered successfully'
+                example:
+                  message: 'User registered successfully'
         '400':
           description: Ошибка при регистрации (например, email уже существует)
           content:
@@ -44,8 +44,8 @@ paths:
                 properties:
                   message:
                     type: string
-                  example:
-                    message: 'Email already exists'
+                example:
+                  message: 'Email already exists'
         '500':
           description: Ошибка на сервере
           content:
@@ -55,8 +55,8 @@ paths:
                 properties:
                   error:
                     type: string
-                  example:
-                    error: 'Some server error'
+                example:
+                  error: 'Some server error'
 
   /login:
     post:
@@ -83,8 +83,8 @@ paths:
                 properties:
                   token:
                     type: string
-                  example:
-                    token: 'your_jwt_token_here'
+                example:
+                  token: 'your_jwt_token_here'
         '400':
           description: Ошибка при входе (неправильный email или пароль)
           content:
@@ -94,8 +94,8 @@ paths:
                 properties:
                   message:
                     type: string
-                  example:
-                    message: 'Invalid username or password'
+                example:
+                  message: 'Invalid username or password'
         '500':
           description: Ошибка на сервере
           content:
@@ -105,8 +105,8 @@ paths:
                 properties:
                   error:
                     type: string
-                  example:
-                    error: 'Some server error'
+                example:
+                  error: 'Some server error'
 
   /shopping-lists:
     post:
@@ -387,8 +387,8 @@ paths:
                 properties:
                   message:
                     type: string
-                  example:
-                    message: 'Item deleted'
+                example:
+                  message: 'Item deleted'
         '500':
           description: Ошибка на сервере
           content:
