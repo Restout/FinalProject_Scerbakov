@@ -300,6 +300,8 @@ export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions): C
                     body: responseHeader ?? responseBody,
                 };
 
+                if(result.status === 401) window.location.href = '/login';
+
                 catchErrorCodes(options, result);
 
                 resolve(result.body);

@@ -7,6 +7,7 @@ import { AddList } from '../models/AddList';
 import { Item } from '../models/Item';
 import { ListItems } from '../models/ListItems';
 import { LoginForm } from '../models/LoginForm';
+import { Member } from '../models/Member';
 import { RegisterForm } from '../models/RegisterForm';
 export class DefaultService {
 
@@ -17,7 +18,7 @@ export class DefaultService {
     }> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/register',
+            url: '/auth/register',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -34,11 +35,25 @@ export class DefaultService {
     }> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/login',
+            url: '/auth/login',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
                 400: `Ошибка при входе (неправильный email или пароль)`,
+                500: `Ошибка на сервере`,
+            },
+        });
+    }
+
+    public static getUsers(
+    ): CancelablePromise<{
+        users?: Array<Member>;
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/users',
+            mediaType: 'application/json',
+            errors: {
                 500: `Ошибка на сервере`,
             },
         });

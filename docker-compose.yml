@@ -7,9 +7,6 @@ services:
     restart: always
     ports:
       - "27017:27017"  # Пробрасываем порт для доступа к MongoDB
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin  # Устанавливаем имя пользователя для администратора
-      MONGO_INITDB_ROOT_PASSWORD: password  # Устанавливаем пароль для администратора
     volumes:
       - mongodb_data:/data/db  # Хранение данных в томе, чтобы они сохранялись между перезапусками
 

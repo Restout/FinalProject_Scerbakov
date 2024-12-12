@@ -16,11 +16,11 @@ export type OpenAPIConfig = {
 };
 
 export const OpenAPI: OpenAPIConfig = {
-    BASE: 'http://localhost:3000/api',
+    BASE: 'http://localhost:8080/api',
     VERSION: '1.0.0',
     WITH_CREDENTIALS: false,
     CREDENTIALS: 'include',
-    TOKEN: undefined,
+    TOKEN: localStorage.getItem('token') || undefined,
     USERNAME: undefined,
     PASSWORD: undefined,
     HEADERS: undefined,
