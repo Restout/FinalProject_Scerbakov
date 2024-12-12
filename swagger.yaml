@@ -563,3 +563,93 @@ paths:
                     example: "You are not part of any group"
         500:
           description: Internal server error.
+
+  /groups/user-lists/{userId}:
+    get:
+      tags:
+        - Groups
+      summary: Get lists for a user and their group (if any)
+      description: |
+        Retrieves the shopping lists for a specified user. 
+        If the user belongs to a group, also retrieves the lists of all group members.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user whose lists are being retrieved.
+          schema:
+            type: string
+            example: "64ac12345abcdef67890"
+      responses:
+        200:
+          description: Successfully retrieved lists.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userLists:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "64acdef1234567890"
+                        name:
+                          type: string
+                          example: "Groceries"
+                        userId:
+                          type: string
+                          example: "64ac12345abcdef67890"
+                        items:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                example: "Milk"
+                              quantity:
+                                type: integer
+                                example: 2
+                  groupLists:
+                    type: array
+                    nullable: true
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "64acdef9876543210"
+                        name:
+                          type: string
+                          example: "Group Shopping List"
+                        userId:
+                          type: string
+                          example: "64ac12345abcdef67891"
+                        items:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                example: "Eggs"
+                              quantity:
+                                type: integer
+                                example: 12
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Internal server error.
