@@ -13,21 +13,25 @@ router.post('/add', authMiddleware, async (req, res) => {
     const { email } = req.body;
 
     const userToAdd = await User.findOne({ email });
+   
+  
     if (!userToAdd) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    let group = await Group.findOne({ members: userToAdd.id });
+    let groupMember = await Group.findOne({ members: userToAdd._id });
+
+    if (groupMember) {
+      return res.status(400).json({ message: 'User is already in the group' });
+    }
+    
+    let group = await Group.findOne({ members: req.user.id });
     if (!group) {
       group = new Group({
         name: `${req.user.id}'s Group`,
         members: [req.user.id],
       });
       await group.save();
-    }
-
-    if (group.members.includes(userToAdd._id)) {
-      return res.status(400).json({ message: 'User is already in the group' });
     }
 
     group.members.push(userToAdd._id);
