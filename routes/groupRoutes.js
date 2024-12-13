@@ -17,7 +17,7 @@ router.post('/add', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    let group = await Group.findOne({ members: req.user.id });
+    let group = await Group.findOne({ members: userToAdd.id });
     if (!group) {
       group = new Group({
         name: `${req.user.id}'s Group`,
@@ -50,7 +50,7 @@ router.post('/leave', authMiddleware, async (req, res) => {
 
     group.members = group.members.filter(memberId => memberId.toString() !== req.user.id);
 
-    if (group.members.length === 0) {
+    if (group.members.length <= 1) {
       await Group.findByIdAndDelete(group._id);
       return res.status(200).json({ message: 'You left the group. Group deleted as it has no members.' });
     }
@@ -63,10 +63,12 @@ router.post('/leave', authMiddleware, async (req, res) => {
 });
 
 // Получить список участников группы
-router.get('/members', authMiddleware, async (req, res) => {
+router.get('/members/:userId', authMiddleware, async (req, res) => {
     try {
+      const { userId } = req.params;
+
       // Найти группу, в которой состоит текущий пользователь
-      const group = await Group.findOne({ members: req.user.id }).populate('members', 'name email');
+      const group = await Group.findOne({ members: userId }).populate('members', 'name email');
       if (!group) {
         return res.status(404).json({ message: 'You are not part of any group' });
       }
@@ -93,13 +95,13 @@ router.get('/members', authMiddleware, async (req, res) => {
   
       if (group) {
         // Получить списки всех участников группы
-        const allMembersLists = await ShoppingList.find({
-          userId: { $in: group.members },
+        const groupMembersLists = await ShoppingList.find({
+          userId: { $in: group.members.filter((memberId) => memberId.toString() !== userId) },
         }).populate('items');
   
         return res.status(200).json({
           userLists,
-          groupLists: allMembersLists,
+          groupLists: groupMembersLists,
         });
       }
   
