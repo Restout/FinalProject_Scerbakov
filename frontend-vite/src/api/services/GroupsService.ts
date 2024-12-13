@@ -2,6 +2,7 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 import { Group } from '../models/Group';
+import { ListItems } from '../models/ListItems';
 import { Member } from '../models/Member';
 export class GroupsService {
 
@@ -48,6 +49,24 @@ export class GroupsService {
             url: '/groups/members',
             errors: {
                 404: `The user is not part of any group.`,
+                500: `Internal server error.`,
+            },
+        });
+    }
+
+    public static getGroupsLists(
+        userId: string,
+    ): CancelablePromise<{
+        userLists: Array<ListItems>;
+        groupLists?: Array<ListItems>;
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/groups/user-lists/{userId}',
+            path: {
+                'userId': userId,
+            },
+            errors: {
                 500: `Internal server error.`,
             },
         });
