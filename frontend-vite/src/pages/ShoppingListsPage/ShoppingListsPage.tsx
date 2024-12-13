@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { ListItems } from "../../api/models/ListItems";
-import { DefaultService, GroupsService } from "../../api";
+import { ApiError, DefaultService, GroupsService } from "../../api";
 import { AddList } from "../../api/models/AddList";
 import { Link } from "react-router-dom";
 import "./ShoppingListPage.css";
+import { Member } from "../../api/models/Member";
 
 const ShoppingListsPage: React.FC = () => {
   const [shoppingLists, setShoppingLists] = useState<ListItems[]>([]);
@@ -16,23 +17,38 @@ const ShoppingListsPage: React.FC = () => {
   const [addingList, setAddingList] = useState<boolean>(false);
   const [searchUserEmail, setSearchUserEmail] = useState<string>("");
   const [addingUser, setAddingUser] = useState<boolean>(false);
+  const [groupMembers, setGroupMembers] = useState<Member[]>([]);
 
   const userId = localStorage.getItem("userId") || "";
 
-  useEffect(() => {
-    const fetchShoppingLists = async () => {
-      try {
-        const lists = await GroupsService.getGroupsLists(userId);
-        setShoppingLists(lists.userLists);
-        setShoppingGroupsLists(lists.groupLists);
-      } catch {
-        setError("Failed to load shopping lists.");
-      } finally {
-        setLoading(false);
+  const fetchGroupMembers = async () => {
+    try {
+      const response = await GroupsService.getGroupsMembers(userId);
+      setGroupMembers(response.members || []);
+    } catch (e: unknown) {
+      if ((e as ApiError).status === 404) {
+        setError("The user is not part of any group.");
+      } else {
+        setError("Failed to load group members.");
       }
-    };
+    }
+  };
 
+  const fetchShoppingLists = async () => {
+    try {
+      const lists = await GroupsService.getGroupsLists(userId);
+      setShoppingLists(lists.userLists);
+      setShoppingGroupsLists(lists.groupLists);
+    } catch {
+      setError("Failed to load shopping lists.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchShoppingLists();
+    fetchGroupMembers();
   }, [userId]);
 
   const handleAddList = async () => {
@@ -65,8 +81,13 @@ const ShoppingListsPage: React.FC = () => {
       });
       setError(response.message || "User added successfully.");
       setSearchUserEmail("");
-    } catch {
-      setError("Failed to add user to group. Make sure the email is correct.");
+      fetchGroupMembers();
+      fetchShoppingLists();
+    } catch (e: unknown){
+      if((e as ApiError).status === 400)
+        setError("User is already in the group");
+      else if((e as ApiError).status === 404)
+        setError("User not found, make sure the email is correct")
     } finally {
       setAddingUser(false);
     }
@@ -75,8 +96,9 @@ const ShoppingListsPage: React.FC = () => {
   const handleLeaveGroup = async () => {
     try {
       const response = await GroupsService.postGroupsLeave();
-      setError(response.message || "Successfully left the group.");
-      setShoppingGroupsLists([]); // Clear group lists after leaving
+      setError("Successfully left the group.");
+      setShoppingGroupsLists([]);
+      setGroupMembers([]);
     } catch {
       setError("Failed to leave group.");
     }
@@ -147,6 +169,19 @@ const ShoppingListsPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <h1>Group Members</h1>
+      {groupMembers.length === 0 ? (
+        <p>No members in the group.</p>
+      ) : (
+        <div style={{color: 'black'}}>
+          {groupMembers.map((member) => (
+            <div key={member._id}>
+              <strong>{member.name}</strong> ({member.email})
+            </div>
+          ))}
+        </div>
+      )}
 
       {error && <div className="error">{error}</div>}
     </div>

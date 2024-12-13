@@ -41,12 +41,17 @@ export class GroupsService {
         });
     }
 
-    public static getGroupsMembers(): CancelablePromise<{
+    public static getGroupsMembers(
+        userId: string,
+    ): CancelablePromise<{
         members?: Array<Member>;
     }> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/groups/members',
+            url: '/groups/members/{userId}',
+            path: {
+                'userId': userId,
+            },
             errors: {
                 404: `The user is not part of any group.`,
                 500: `Internal server error.`,
