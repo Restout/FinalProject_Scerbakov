@@ -1,10 +1,11 @@
 const express = require('express');
 const User = require('../models/User');
+const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
 // Создать пользователя
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware,  async (req, res) => {
   try {
     const user = new User(req.body);
     await user.save();
@@ -15,7 +16,7 @@ router.post('/', async (req, res) => {
 });
 
 // Получить всех пользователей
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware,  async (req, res) => {
   try {
     const users = await User.find();
     res.json(users);
