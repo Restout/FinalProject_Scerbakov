@@ -95,7 +95,7 @@ const ShoppingListDetailPage = () => {
         ))}
       </ul>
 
-      <h2>Add New Item</h2>
+      <h2 style={{color: "black"}}>Add New Item</h2>
       <form onSubmit={handleAddItem}>
         <input
           type="text"
