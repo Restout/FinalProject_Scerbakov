@@ -1,12 +1,12 @@
 const express = require('express');
 const ShoppingList = require('../models/ShoppingList');
 const Item = require('../models/Item'); 
-const auth = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
 // Создать список покупок
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const list = new ShoppingList(req.body);
     await list.save();
@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
 });
 
 // Получить все списки для пользователя
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', authMiddleware, async (req, res) => {
   try {
     const lists = await ShoppingList.find({ userId: req.params.userId }).populate('items');
     res.json(lists);
@@ -27,7 +27,7 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Получить конкретный список покупок
-router.get('/:listId', async (req, res) => {
+router.get('/:listId', authMiddleware, async (req, res) => {
     try {
       const { listId } = req.params;
   
@@ -43,7 +43,7 @@ router.get('/:listId', async (req, res) => {
   });
 
 // Добавить новый товар в существующий список
-router.post('/:listId/items', async (req, res) => {
+router.post('/:listId/items', authMiddleware, async (req, res) => {
     try {
         const { listId } = req.params;
         const { name, price, quantity } = req.body;

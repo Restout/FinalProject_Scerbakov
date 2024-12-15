@@ -2,11 +2,12 @@ const express = require('express');
 const Item = require('../models/Item');
 const ShoppingList = require('../models/ShoppingList');
 const auth = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
 // Добавить товар
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware,  async (req, res) => {
   try {
     const item = new Item(req.body);
     await item.save();
@@ -22,7 +23,7 @@ router.post('/', async (req, res) => {
 });
 
 // Удалить товар
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const item = await Item.findByIdAndDelete(req.params.id);
 
